@@ -1,53 +1,12 @@
-from typing import NamedTuple, List, Dict
+from typing import List
 import re
 from exceptions import NoCorrectMessage
 import datetime
 import database
+from structures import Message, MessageUser, Expenses, BalanceMessage, MessageExpense, DeleteItem
 
 
-class Message(NamedTuple):  # object to message user
-    amount: int
-    category_text: str
-
-
-class Expenses(NamedTuple):  # object to expenses user
-    name: str
-    amount: int
-    data: str
-    text: str
-
-
-class DeleteMessage(NamedTuple):  # object to delete user message
-    name: str
-    data: str
-
-
-class MessageUser(NamedTuple):
-    message: str
-
-
-class MessageExpense(NamedTuple):
-    name: str
-    amount: int
-    date: datetime.date
-
-
-class DeleteDict(Dict):
-    name: str
-    expenses: str
-
-
-class DeleteItem(NamedTuple):
-    products: str
-    price: int
-    date: str
-
-
-class BalanceMessage(NamedTuple):
-    month: int
-
-
-def get_datetime():  # get time to db
+def get_datetime_today():  # get time to db
     return str(datetime.date.today())
 
 
@@ -67,9 +26,9 @@ def parsing_message(message_user: str) -> Message:  # parsing message user to ad
                        category_text=category_text)
 
 
-def add_expense(expense) -> Expenses:  # add to db
+def add_expense(expense: str) -> Expenses:  # add expense to db
     result_parsing = parsing_message(expense)
-    data_today = get_datetime()
+    data_today = get_datetime_today()
     expenses = Expenses(
         name=result_parsing.category_text,
         amount=result_parsing.amount,
@@ -84,7 +43,7 @@ def add_expense(expense) -> Expenses:  # add to db
                     text=expense)
 
 
-def delete_all() -> MessageUser:  # truncate db
+def delete_all() -> MessageUser:  # truncate table from  db
     try:
         database.DataBase().delete_all()
         return MessageUser(message='Все данные о покупках удалены')
@@ -106,7 +65,7 @@ def out_expenses() -> List[MessageExpense]:  # return last expenses default :10
         print(e)
 
 
-def delete_expense(message_from_user) -> MessageUser:
+def delete_expense(message_from_user: str) -> MessageUser:  # delete certain expense
     delete_item = message_from_user.split(':')
     print(delete_item)
     try:
@@ -118,19 +77,25 @@ def delete_expense(message_from_user) -> MessageUser:
         pass
 
 
-def add_budjet_month(price_month: int) -> MessageUser:
+def add_budjet_month(price_month: int) -> MessageUser:  # add to db budjet user
     try:
-        database.DataBase().insert_budjet(price_month, 'month')
+        database.DataBase().insert_budjet(price_month)
 
         return MessageUser(message='Бюджет на месяц успешно изменен')
     except:
         pass
 
 
-def check_to_balance() -> BalanceMessage:
+def check_to_balance() -> BalanceMessage:  # checking from db balance user
     try:
         answer_balance = database.DataBase().check_balance()
-        return BalanceMessage(month=answer_balance[1],)
+        return BalanceMessage(month=answer_balance[1], )
 
     except:
         pass
+
+
+def get_statistic_today() -> MessageUser:  # return statistic today
+    date_today = get_datetime_today()
+    stat_number = database.DataBase().get_today(date_today)
+    return MessageUser(message=stat_number)
