@@ -47,7 +47,7 @@ async def welcome(message: types.message) -> None:
                              'Стастистика за месяц : /month \n', reply=False)
 
         await  message.answer('Узнать последние внесенные расходы: /expenses \n'
-                              'Установить бюджет на месяц или изменить его : /budget\n'
+                              'Установить бюджет на месяц или изменить его : /budjet\n'
                               'Удалить все данные о покупках : /delete_all \n', reply=False)
 
         await  message.answer(
@@ -77,7 +77,7 @@ async def print_help(message: types.message) -> None:
 async def print_today_statistic(message: types.message) -> None:
     answer_database = expenses.get_statistic_today()
     try:
-        if answer_database.message:
+        if answer_database.message is not None:
             await message.answer('На сегодня зартачено : ' + str(answer_database.message) + ' рублей')
 
         else:
@@ -90,13 +90,41 @@ async def print_today_statistic(message: types.message) -> None:
 @dp.message_handler(commands=['month'])
 @auth_user
 async def print_month_statistic(message: types.message):
-    pass
+    try:
+        answer_database = expenses.get_statistic_month()
+        if answer_database.message is not None:
+            await message.answer('За месяц затрачено ' + str(answer_database.message) + ' руб')
+
+        else:
+            await message.answer('За месяц затрачено ' + str(0) + ' руб')
+
+    except:
+        raise exceptions.ErrorToDataBase(await message.answer('Произошли какие-то неполадки с базой данных'))
+
+
+@dp.message_handler(commands=['year'])
+@auth_user
+async def print_year_statistic(message: types.message):
+    try:
+        answer_database = expenses.get_statistic_year()
+        if answer_database.message is not None:
+            await message.answer('За год затрачено ' + str(answer_database.message) + ' руб')
+
+        else:
+            await message.answer('За год затрачено ' + str(0) + ' руб')
+
+    except:
+        raise exceptions.ErrorToDataBase(await message.answer('Произошли какие-то неполадки с базой данных'))
 
 
 @dp.message_handler(commands=['expenses'])
 @auth_user
 async def print_expenses(message: types.message) -> None:
+    if DICTIONARY_LIST is None:
+        await message.answer('Список недавних покупок пуст')  # if expenses list clear to not have error
+
     DICTIONARY_LIST[:] = []  # clear list
+
     answer_database = expenses.out_expenses()
     cnt = 0
     for i in answer_database:

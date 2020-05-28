@@ -99,6 +99,19 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
+    def get_statistic(self, date):
+        try:
+            month_statistic = self.connection.execute(
+                "SELECT SUM(amount) FROM expenses WHERE DATE (data_create) >= %s;", (date))
+            for i in month_statistic:
+                return i[0]
+
+            self.trans.commit()
+
+        except Exception as e:
+            print(e)
+            self.trans.rollback()
+
     def init_db(self):
         pass
 

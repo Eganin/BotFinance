@@ -98,3 +98,15 @@ def get_statistic_today() -> MessageUser:  # return statistic today
     date_today = get_datetime_today()
     stat_number = database.DataBase().get_today(date_today)
     return MessageUser(message=stat_number)
+
+
+def get_statistic_month() -> MessageUser:
+    date_today = get_datetime_today()[:-2] + '01'  # datetime to start month
+    stat_number = database.DataBase().get_statistic(date_today)
+    return MessageUser(message=stat_number)
+
+
+def get_statistic_year() -> MessageUser:
+    date_today = get_datetime_today()[:4] + '-01-01'  # datetime to start year
+    stat_number = database.DataBase().get_statistic(date_today)
+    return MessageUser(message=stat_number)
