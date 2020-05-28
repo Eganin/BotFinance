@@ -162,7 +162,6 @@ async def delete_all(message: types.message) -> None:
 @auth_user
 async def balance(message: types.message) -> None:
     answer_database = expenses.check_to_balance()
-    print(answer_database)
     try:
         await message.answer(f'На месяц: {answer_database.month} руб\n')
 
@@ -190,11 +189,16 @@ async def del_expenses(message: types.message) -> None:
 async def add_expenses(message: types.message) -> None:
     '''add to new expenses'''
     try:
-        message_user = expenses.add_expense(message.text)
-        await message.answer(
-            'Добвалена покупка :' + '\n' + 'Название :' + str(message_user.name) + '\n' + 'Название : ' + str(
-                message_user.amount) + '\n' + 'Дата :' + str(
-                message_user.data) + '\n' + 'Текст сообщения:' + str(message_user.text) + '\n')
+        answer_database = expenses.check_to_balance()
+        if answer_database.month <= 0:
+            await message.answer('У вас закончился баланс , вы не можете делать покупки')
+
+        else:
+            message_user = expenses.add_expense(message.text)
+            await message.answer(
+                'Добвалена покупка :' + '\n' + 'Название :' + str(message_user.name) + '\n' + 'Название : ' + str(
+                    message_user.amount) + '\n' + 'Дата :' + str(
+                    message_user.data) + '\n' + 'Текст сообщения:' + str(message_user.text) + '\n')
 
     except:
         raise exceptions.FatalError(await message.answer('Произошла неизвестная ошибка'))

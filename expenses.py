@@ -21,6 +21,7 @@ def parsing_message(message_user: str) -> Message:  # parsing message user to ad
 
     else:
         amount = int(regexp_pattern.group(1).replace(' ', ''))
+        limit_balance(amount)
         category_text = regexp_pattern.group(2).strip().lower()
         return Message(amount=amount,
                        category_text=category_text)
@@ -110,3 +111,15 @@ def get_statistic_year() -> MessageUser:
     date_today = get_datetime_today()[:4] + '-01-01'  # datetime to start year
     stat_number = database.DataBase().get_statistic(date_today)
     return MessageUser(message=stat_number)
+
+
+def limit_balance(amount_expenses) -> None:
+    database.DataBase().take_away_balance(amount_expenses)
+
+
+def ratio_balance():  # 20000 / 100000 * 100 = 0.20
+    pass
+
+
+def replenishment_balance():
+    pass

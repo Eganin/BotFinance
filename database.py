@@ -112,6 +112,23 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
+    def take_away_balance(self, amount):
+        data = []
+        try:
+            balance = self.connection.execute('SELECT * FROM budjet;')
+            for i in balance:
+                data.append(i)
+
+            self.connection.execute('INSERT INTO budjet (budjet_limit_month) VALUES (%s);',
+                                    (int(data[-1][-1]) - int(amount)))
+
+            self.trans.commit()
+
+
+        except Exception as e:
+            print(e)
+            self.trans.rollback()
+
     def init_db(self):
         pass
 
