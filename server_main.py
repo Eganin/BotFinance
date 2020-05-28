@@ -44,14 +44,15 @@ async def welcome(message: types.message) -> None:
                              'Введи или нажми на команды если не понятно введи /help \n'
                              'Добавить расход : 250 такси \n'
                              'Статистика на сегодня: /today \n'
-                             'Стастистика за месяц : /month \n'
-                             'Узнать последние внесенные расходы: /expenses \n'
-                             'Категории различных затрат : /categories \n'
-                             'Установить бюджет на месяц или изменить его : /budget'
-                             'Удалить все данные о покупках : /delete_all \n'
-                             'Удалить определенную покупку : /delete_one'
-                             'Изменить бюджет на месяц : /budjet_month'
-                             'Изменить бюджет на год : /budjet_year', reply=False)
+                             'Стастистика за месяц : /month \n', reply=False)
+
+        await  message.answer('Узнать последние внесенные расходы: /expenses \n'
+                              'Установить бюджет на месяц или изменить его : /budget\n'
+                              'Удалить все данные о покупках : /delete_all \n', reply=False)
+
+        await  message.answer(
+            'Узнать баланс: /balance\n'
+            'Удалить определенную покупку: /del', reply=False)
 
     except:
         raise exceptions.FatalError(await message.answer('Произошла неизвестная ошибка'))
@@ -62,7 +63,11 @@ async def welcome(message: types.message) -> None:
 async def print_help(message: types.message) -> None:
     '''help to bot'''
     try:
-        await message.answer('Для того чтобы добавить расходы введите например : \n250 такси')
+        await message.answer('Для того чтобы добавить расходы введите например : \n250 такси\n'
+                             'Для того чтобы пользоваться командами нужно их в точности набрать\n'
+                             'При наборе команды: /budjet надо набрать размер бюджета на месяц\n'
+                             'Например:/budjet 100000'
+                             'Чтобы удалить покупку надо просмотреть /expenses и нажать определенный /del', reply=False)
     except:
         raise exceptions.FatalError(await message.answer('Произошла неизвестная ошибка'))
 
@@ -72,7 +77,11 @@ async def print_help(message: types.message) -> None:
 async def print_today_statistic(message: types.message) -> None:
     answer_database = expenses.get_statistic_today()
     try:
-        await message.answer('На сегодня зартачено : ' + str(answer_database.message) + ' рублей')
+        if answer_database.message:
+            await message.answer('На сегодня зартачено : ' + str(answer_database.message) + ' рублей')
+
+        else:
+            await message.answer('На сегодня зартачено : ' + str(0) + ' рублей')
 
     except:
         raise exceptions.ErrorToDataBase(await message.answer('Произошли какие-то неполадки с базой данных'))
@@ -95,12 +104,12 @@ async def print_expenses(message: types.message) -> None:
         DICTIONARY_LIST.append(DeleteDict(name='/del' + str(cnt),
                                           expenses=f'{i.name}:{i.amount}:{i.date}'))  # split ':'
         try:
-            await message.answer(f'{i.name}: {i.amount}руб {i.date} года' + ' ' + '/del' + str(cnt))
+            await message.answer(f'{i.name}: {i.amount}руб {i.date} года' + '  ' + 'Удалить:' + ' ' + '/del' + str(cnt))
         except:
             raise exceptions.ErrorToDataBase(await message.answer('Произошли какие-то неполадки с базой данных'))
 
 
-@dp.message_handler(commands=['budjet_month'])
+@dp.message_handler(commands=['budjet'])
 @auth_user
 async def add_budjet_month(message: types.message) -> None:
     price_month = int(message.text.split()[1])
@@ -164,8 +173,4 @@ async def add_expenses(message: types.message) -> None:
 
 
 if __name__ == '__main__':  # start bot
-    try:
-        executor.start_polling(dp, skip_updates=True)  # skip errors
-
-    except:
-        raise exceptions.FatalError(await message.answer('Произошла неизвестная ошибка'))
+    executor.start_polling(dp, skip_updates=True)  # skip errors

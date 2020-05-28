@@ -67,7 +67,6 @@ def out_expenses() -> List[MessageExpense]:  # return last expenses default :10
 
 def delete_expense(message_from_user: str) -> MessageUser:  # delete certain expense
     delete_item = message_from_user.split(':')
-    print(delete_item)
     try:
         database.DataBase().delete_one(
             DeleteItem(products=str(delete_item[0]), price=int(delete_item[1]), date=str(delete_item[2])))

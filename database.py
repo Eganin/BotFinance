@@ -1,15 +1,20 @@
 from typing import NamedTuple
 import sqlalchemy
 from structures import MessageStatistic
+from dotenv import load_dotenv
+import os
 
 
 class DataBase(object):
+    load_dotenv()  # load .env
+
     def __init__(self) -> None:
-        self.engine = sqlalchemy.create_engine('postgresql+psycopg2://postgres:Zaharin0479@localhost:5432/costproject')
+        self.path_engine = os.getenv("POSTGRES_ENGINE")
+        self.engine = sqlalchemy.create_engine(self.path_engine)
         self.connection = self.engine.connect()
         self.trans = self.connection.begin()  # tranzaction
 
-    def insert(self, data: NamedTuple) -> None:
+    def insert(self, data: NamedTuple) -> None:  # insert table expenses
         try:
             self.connection.execute('INSERT INTO expenses (name_ , amount , data_create , raw_text)'
                                     'VALUES (%s , %s ,%s , %s)', (data.name, data.amount, data.data,
@@ -19,7 +24,7 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def insert_budjet(self, data: int) -> None:
+    def insert_budjet(self, data: int) -> None:  # insert table budjet
         try:
             self.connection.execute('TRUNCATE  TABLE budjet ;')
             self.connection.execute('INSERT INTO budjet (budjet_limit_month)'
@@ -31,7 +36,7 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def fetchall(self, number_output: int = 10) -> tuple:
+    def fetchall(self, number_output: int = 10) -> tuple:  # return expenses result
         try:
             fetchall = self.connection.execute('SELECT name_ , amount , data_create FROM expenses LIMIT %s',
                                                (number_output))
@@ -42,7 +47,7 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def delete_all(self):
+    def delete_all(self):  # all truncate
         try:
             self.connection.execute('TRUNCATE TABLE expenses;')
 
@@ -54,7 +59,7 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def delete_one(self, delete_item):
+    def delete_one(self, delete_item):  # delete one item
         try:
             self.connection.execute('DELETE FROM expenses WHERE name_ = %s AND amount = %s AND data_create = %s;',
                                     (delete_item.products, delete_item.price, delete_item.date))
@@ -64,15 +69,13 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def check_balance(self) -> tuple:
+    def check_balance(self) -> tuple:  # check balance to db from a month
         data = []
         try:
             balance = self.connection.execute('SELECT * FROM budjet;')
             for i in balance:
-                print(i)
                 data.append(i)
 
-            print(data)
             return data[-1]
 
 
@@ -80,7 +83,7 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def get_today(self, date):
+    def get_today(self, date):  # return statistic from today
         try:
             date_statistic = self.connection.execute(
                 'SELECT SUM(amount),data_create FROM expenses GROUP BY data_create;'
@@ -95,3 +98,9 @@ class DataBase(object):
         except Exception as e:
             print(e)
             self.trans.rollback()
+
+    def init_db(self):
+        pass
+
+    def check_db(self):
+        pass
