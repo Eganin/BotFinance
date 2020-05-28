@@ -118,7 +118,10 @@ def limit_balance(amount_expenses) -> None:
 
 
 def ratio_balance():  # 20000 / 100000 * 100 = 0.20
-    pass
+    def_balance = database.DataBase().get_default_balance()
+    now_balance = check_to_balance()
+    result = int(now_balance.month) / int(def_balance) * 100
+    return result
 
 
 def replenishment_balance():

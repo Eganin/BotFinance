@@ -189,11 +189,15 @@ async def del_expenses(message: types.message) -> None:
 async def add_expenses(message: types.message) -> None:
     '''add to new expenses'''
     try:
+        ratio = expenses.ratio_balance()
         answer_database = expenses.check_to_balance()
         if answer_database.month <= 0:
             await message.answer('У вас закончился баланс , вы не можете делать покупки')
 
         else:
+            if ratio <= 20.0:
+                await message.answer('У вас мало денег следите за балансом')
+
             message_user = expenses.add_expense(message.text)
             await message.answer(
                 'Добвалена покупка :' + '\n' + 'Название :' + str(message_user.name) + '\n' + 'Название : ' + str(
