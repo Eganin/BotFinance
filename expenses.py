@@ -21,7 +21,7 @@ def parsing_message(message_user: str) -> Message:  # parsing message user to ad
 
     else:
         amount = int(regexp_pattern.group(1).replace(' ', ''))
-        limit_balance(amount)
+        limit_balance(amount)  # take away balance
         category_text = regexp_pattern.group(2).strip().lower()
         return Message(amount=amount,
                        category_text=category_text)
@@ -117,12 +117,22 @@ def limit_balance(amount_expenses) -> None:
     database.DataBase().take_away_balance(amount_expenses)
 
 
-def ratio_balance():  # 20000 / 100000 * 100 = 0.20
+def ratio_balance():
     def_balance = database.DataBase().get_default_balance()
     now_balance = check_to_balance()
     result = int(now_balance.month) / int(def_balance) * 100
     return result
 
 
-def replenishment_balance():
-    pass
+def replenishment_balance_date(data_balance):
+    date_today = get_datetime_today()[:5]
+    cnt_month = int(get_datetime_today()[5:7]) + 1  # new month
+    result = str(date_today) + '0' + str(cnt_month) + '-' + str(data_balance)  # new format data
+    return result
+
+
+def check_replenishment_balance(date):
+    while True:
+        now_datetime_today = get_datetime_today()
+        if now_datetime_today == date:
+            database.DataBase().replenishment_balance()

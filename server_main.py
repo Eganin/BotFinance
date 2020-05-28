@@ -170,6 +170,13 @@ async def balance(message: types.message) -> None:
         raise exceptions.NullBalance(await message.answer('Баланс чист или отсутсвует'))
 
 
+@dp.message_handler(commands=['databal'])
+@auth_user
+async def auto_balance(message: types.message) -> None:
+    data_balance = int(message.text.split()[1])
+    expenses.check_replenishment_balance(expenses.replenishment_balance_date(data_balance))
+
+
 @dp.message_handler(lambda message: message.text.startswith('/del'))
 @auth_user
 async def del_expenses(message: types.message) -> None:
@@ -190,6 +197,7 @@ async def add_expenses(message: types.message) -> None:
     '''add to new expenses'''
     try:
         ratio = expenses.ratio_balance()
+        print(ratio)
         answer_database = expenses.check_to_balance()
         if answer_database.month <= 0:
             await message.answer('У вас закончился баланс , вы не можете делать покупки')
@@ -200,8 +208,8 @@ async def add_expenses(message: types.message) -> None:
 
             message_user = expenses.add_expense(message.text)
             await message.answer(
-                'Добвалена покупка :' + '\n' + 'Название :' + str(message_user.name) + '\n' + 'Название : ' + str(
-                    message_user.amount) + '\n' + 'Дата :' + str(
+                'Добвалена покупка :' + '\n' + 'Название :' + str(message_user.name) + '\n' + 'Стоимость : ' + str(
+                    message_user.amount) + 'руб' + '\n' + 'Дата :' + str(
                     message_user.data) + '\n' + 'Текст сообщения:' + str(message_user.text) + '\n')
 
     except:

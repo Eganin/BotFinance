@@ -119,8 +119,10 @@ class DataBase(object):
             for i in balance:
                 data.append(i)
 
+            print(data[-1][-2])
+            print(amount)
             self.connection.execute('INSERT INTO budjet (budjet_limit_month) VALUES (%s);',
-                                    (int(data[-1][-1]) - int(amount)))
+                                    (int(data[-1][-2]) - int(amount)))
 
             self.trans.commit()
 
@@ -135,6 +137,22 @@ class DataBase(object):
             for i in default_balance:
                 return i[0]
 
+            self.trans.commit()
+
+        except Exception as e:
+            print(e)
+            self.trans.rollback()
+
+    def replenishment_balance(self):
+        try:
+            default_balance = self.connection.execute('SELECT budjet_limit_month_default FROM budjet WHERE id=1;')
+            for i in default_balance:
+                new_balance = i[0]
+                self.connection.execute('TRUNCATE TABLE budjet RESTART IDENTITY;')
+                self.connection.execute('INSERT INTO budjet (budjet_limit_month) VALUES (&s);',
+                                        (new_balance))
+
+                self.trans.commit()
 
         except Exception as e:
             print(e)
