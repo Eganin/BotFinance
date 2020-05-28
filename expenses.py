@@ -43,6 +43,10 @@ class DeleteItem(NamedTuple):
     date: str
 
 
+class BalanceMessage(NamedTuple):
+    month: int
+
+
 def get_datetime():  # get time to db
     return str(datetime.date.today())
 
@@ -80,7 +84,7 @@ def add_expense(expense) -> Expenses:  # add to db
                     text=expense)
 
 
-def delete_all_expenses() -> MessageUser:  # truncate db
+def delete_all() -> MessageUser:  # truncate db
     try:
         database.DataBase().delete_all()
         return MessageUser(message='Все данные о покупках удалены')
@@ -114,13 +118,19 @@ def delete_expense(message_from_user) -> MessageUser:
         pass
 
 
-def add_budjet_mouth():
-    pass
+def add_budjet_month(price_month: int) -> MessageUser:
+    try:
+        database.DataBase().insert_budjet(price_month, 'month')
+
+        return MessageUser(message='Бюджет на месяц успешно изменен')
+    except:
+        pass
 
 
-def add_budjet_year():
-    pass
+def check_to_balance() -> BalanceMessage:
+    try:
+        answer_balance = database.DataBase().check_balance()
+        return BalanceMessage(month=answer_balance[1],)
 
-
-def add_budjet_daily():
-    pass
+    except:
+        pass

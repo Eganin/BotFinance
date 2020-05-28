@@ -8,3 +8,7 @@ class FatalError(Exception):
 
 class ErrorToDataBase(Exception):
     pass
+
+
+class NullBalance(Exception):
+    pass

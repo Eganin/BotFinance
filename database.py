@@ -18,8 +18,17 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def insert_budjet(self, data: NamedTuple):
-        pass
+    def insert_budjet(self, data: int, flag_type=None):
+        try:
+            self.connection.execute('UPDATE budjet SET budjet_limit_month = 0;')
+            self.connection.execute('INSERT INTO budjet (budjet_limit_month)'
+                                    'VALUES (%s);', (data))
+
+            self.trans.commit()
+
+        except Exception as e:
+            print(e)
+            self.trans.rollback()
 
     def fetchall(self, number_output=10) -> tuple:
         try:
@@ -36,6 +45,8 @@ class DataBase(object):
         try:
             self.connection.execute('TRUNCATE TABLE expenses;')
 
+            self.connection.execute('TRUNCATE TABLE budjet;')
+
             self.trans.commit()
 
         except Exception as e:
@@ -48,6 +59,22 @@ class DataBase(object):
                                     (delete_item.products, delete_item.price, delete_item.date))
 
             self.trans.commit()
+        except Exception as e:
+            print(e)
+            self.trans.rollback()
+
+    def check_balance(self) -> tuple:
+        data = []
+        try:
+            balance = self.connection.execute('SELECT * FROM budjet;')
+            for i in balance:
+                print(i)
+                data.append(i)
+
+            print(data)
+            return data[-1]
+
+
         except Exception as e:
             print(e)
             self.trans.rollback()

@@ -67,7 +67,7 @@ async def print_help(message: types.message) -> None:
 
 @dp.message_handler(commands=['today'])
 @auth_user
-async def print_today_statistic(message: types.message):
+async def print_today_statistic(message: types.message) -> None:
     print('today')
 
 
@@ -79,7 +79,7 @@ async def print_month_statistic(message: types.message):
 
 @dp.message_handler(commands=['expenses'])
 @auth_user
-async def print_expenses(message: types.message):
+async def print_expenses(message: types.message) -> None:
     DICTIONARY_LIST[:] = []  # clear list
     answer_database = expenses.out_expenses()
     cnt = 0
@@ -92,32 +92,34 @@ async def print_expenses(message: types.message):
 
 @dp.message_handler(commands=['budjet_month'])
 @auth_user
-async def add_budjet_month(message: types.message):
-    print('budjet')
-
-
-@dp.message_handler(commands=['budjet_year'])
-@auth_user
-async def add_budjet_year(message: types.message):
-    print('budjet')
-
-
-@dp.message_handler(commands=['budjet_daily'])
-@auth_user
-async def add_budjet_daily(message: types.message):
-    pass
+async def add_budjet_month(message: types.message) -> None:
+    price_month = int(message.text.split()[1])
+    message_db = expenses.add_budjet_month(price_month)
+    await message.answer(message_db.message)
 
 
 @dp.message_handler(commands=['delete_all'])
 @auth_user
-async def delete_all(message: types.message):
-    answer_database = expenses.delete_all_expenses()
+async def delete_all(message: types.message) -> None:
+    answer_database = expenses.delete_all()
     await message.answer(answer_database.message)
+
+
+@dp.message_handler(commands=['balance'])
+@auth_user
+async def balance(message: types.message) -> None:
+    answer_database = expenses.check_to_balance()
+    print(answer_database)
+    try:
+        await message.answer(f'На месяц: {answer_database.month} руб\n')
+
+    except:
+        await message.answer(f'На месяц: 0 руб\nВы ничего не вводили')
 
 
 @dp.message_handler(lambda message: message.text.startswith('/del'))
 @auth_user
-async def del_expenses(message: types.message):
+async def del_expenses(message: types.message) -> None:
     for i in DICTIONARY_LIST:
         if i['name'] == message.text:
             answer_databse = expenses.delete_expense(i['expenses'])
@@ -127,7 +129,7 @@ async def del_expenses(message: types.message):
 
 @dp.message_handler(lambda message: message)  # other message , message to add expenses
 @auth_user
-async def add_expenses(message: types.message):
+async def add_expenses(message: types.message) -> None:
     '''add to new expenses'''
     message_user = expenses.add_expense(message.text)
     await message.answer(
