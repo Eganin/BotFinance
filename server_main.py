@@ -203,6 +203,7 @@ async def add_expenses(message: types.message) -> None:
     try:
         ratio = expenses.ratio_balance()
         print(ratio)
+        expenses.check_balance_repleh()
         answer_database = expenses.check_to_balance()
         if answer_database.month <= 0:
             await message.answer('У вас закончился баланс , вы не можете делать покупки')
@@ -211,14 +212,26 @@ async def add_expenses(message: types.message) -> None:
             if ratio <= 20.0:
                 await message.answer('У вас мало денег следите за балансом')
 
+        try:
             message_user = expenses.add_expense(message.text)
             await message.answer(
                 'Добвалена покупка :' + '\n' + 'Название :' + str(message_user.name) + '\n' + 'Стоимость : ' + str(
                     message_user.amount) + 'руб' + '\n' + 'Дата :' + str(
                     message_user.data) + '\n' + 'Текст сообщения:' + str(message_user.text) + '\n')
 
+        except:
+            raise exceptions.NoCorrectMessage(await message.answer('Вы неправильно ввели данные'))
+
     except:
-        raise exceptions.FatalError(await message.answer('Произошла неизвестная ошибка'))
+        try:
+            message_user = expenses.add_expense(message.text)
+            await message.answer(
+                'Добвалена покупка :' + '\n' + 'Название :' + str(message_user.name) + '\n' + 'Стоимость : ' + str(
+                    message_user.amount) + 'руб' + '\n' + 'Дата :' + str(
+                    message_user.data) + '\n' + 'Текст сообщения:' + str(message_user.text) + '\n')
+
+        except:
+            raise exceptions.NoCorrectMessage(await message.answer('Вы неправильно ввели данные'))
 
 
 if __name__ == '__main__':  # start bot

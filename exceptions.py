@@ -12,3 +12,7 @@ class ErrorToDataBase(Exception):
 
 class NullBalance(Exception):
     pass
+
+
+class NextDataMoney(Exception):
+    pass

@@ -5,6 +5,7 @@ import structures
 from dotenv import load_dotenv
 import os
 import datetime
+import exceptions
 
 
 class DataBase(object):
@@ -27,22 +28,30 @@ class DataBase(object):
             self.trans.rollback()
 
     def insert_budjet(self, data: int) -> None:  # insert table budjet
+        daat_money = []
         try:
-            daat_money = []
             data_money = self.connection.execute('SELECT data_money FROM budjet WHERE id=1;')
             for i in data_money:
                 daat_money.append(i)
-
-            print(daat_money[-1])
+        except:
+            pass
+        try:
             self.connection.execute('TRUNCATE  TABLE budjet ;')
             self.connection.execute('INSERT INTO budjet (budjet_limit_month , budjet_limit_month_default , data_money)'
                                     'VALUES (%s , %s , %s);', (data, data, daat_money[-1][0]))
 
             self.trans.commit()
 
-        except Exception as e:
-            print(e)
-            self.trans.rollback()
+        except:
+            try:
+                self.connection.execute('INSERT INTO budjet (budjet_limit_month , budjet_limit_month_default )'
+                                        'VALUES (%s , %s );', (data, data))
+
+                self.trans.commit()
+            except Exception as e:
+                print('blzzzz')
+                print(e)
+                self.trans.rollback()
 
     def fetchall(self, number_output: int = 10) -> tuple:  # return expenses result
         try:
@@ -156,8 +165,10 @@ class DataBase(object):
 
     def replenishment_balance(self) -> None:
         try:
+            print('conn')
             default_balance = self.connection.execute('SELECT data_money FROM budjet WHERE id=1;')
             for i in default_balance:
+                print(i)
                 new_balance = i[0]
                 self.connection.execute('TRUNCATE TABLE budjet RESTART IDENTITY;')
                 self.connection.execute('INSERT INTO budjet (budjet_limit_month) VALUES (&s);',
@@ -165,9 +176,21 @@ class DataBase(object):
 
                 self.trans.commit()
 
-        except Exception as e:
-            print(e)
-            self.trans.rollback()
+        except:
+            try:
+                print('2conn')
+                default_balance = self.connection.execute('SELECT data_money FROM budjet WHERE id=2;')
+                for i in default_balance:
+                    new_balance = i[0]
+                    self.connection.execute('TRUNCATE TABLE budjet RESTART IDENTITY;')
+                    self.connection.execute('INSERT INTO budjet (budjet_limit_month) VALUES (&s);',
+                                            (new_balance))
+
+                    self.trans.commit()
+
+            except Exception as e:
+                print(e)
+                self.trans.rollback()
 
     def insert_data_balance(self, data_balance: int) -> None:
         try:
@@ -178,6 +201,31 @@ class DataBase(object):
         except Exception as e:
             print(e)
             self.trans.rollback()
+
+    def get_data_balance_old(self) -> None:
+        try:
+            now_data_balance = self.connection.execute('SELECT data_money FROM budjet WHERE id =2;')
+            for i in now_data_balance:
+                if int(i[0]) == 0 or i[0] is None:
+                    raise exceptions.NextDataMoney()
+
+                else:
+                    return i[0]
+            self.trans.commit()
+
+        except:
+            try:
+                now_data_balance = self.connection.execute('SELECT data_money FROM budjet WHERE id =1;')
+                for i in now_data_balance:
+                    if int(i[0]) == 0 or i[0] is None:
+                        raise exceptions.NextDataMoney()
+                    else:
+                        return i[0]
+                self.trans.commit()
+
+            except Exception as e:
+                print(e)
+                self.trans.rollback()
 
     def init_db(self):
         pass

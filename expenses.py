@@ -136,3 +136,13 @@ def check_replenishment_balance(date):
     now_datetime_today = get_datetime_today()
     if now_datetime_today == date:
         database.DataBase().replenishment_balance()
+
+
+def check_balance_repleh():
+    date_today = get_datetime_today()[-2:]
+    date_month = database.DataBase().get_data_balance_old()
+    print(date_month)
+    print(date_today)
+    if int(date_month) == int(date_today):
+        print('WEa')
+        database.DataBase().replenishment_balance()
