@@ -1,8 +1,10 @@
 from typing import NamedTuple
 import sqlalchemy
 from structures import MessageStatistic
+import structures
 from dotenv import load_dotenv
 import os
+import datetime
 
 
 class DataBase(object):
@@ -26,9 +28,15 @@ class DataBase(object):
 
     def insert_budjet(self, data: int) -> None:  # insert table budjet
         try:
+            daat_money = []
+            data_money = self.connection.execute('SELECT data_money FROM budjet WHERE id=1;')
+            for i in data_money:
+                daat_money.append(i)
+
+            print(daat_money[-1])
             self.connection.execute('TRUNCATE  TABLE budjet ;')
-            self.connection.execute('INSERT INTO budjet (budjet_limit_month , budjet_limit_month_default)'
-                                    'VALUES (%s , %s);', (data, data))
+            self.connection.execute('INSERT INTO budjet (budjet_limit_month , budjet_limit_month_default , data_money)'
+                                    'VALUES (%s , %s , %s);', (data, data, daat_money[-1][0]))
 
             self.trans.commit()
 
@@ -47,7 +55,7 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def delete_all(self):  # all truncate
+    def delete_all(self) -> None:  # all truncate
         try:
             self.connection.execute('TRUNCATE TABLE expenses RESTART IDENTITY;')
 
@@ -59,10 +67,16 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def delete_one(self, delete_item):  # delete one item
+    def delete_one(self, delete_item: structures.DeleteItem) -> None:  # delete one item
         try:
+            data = []
             self.connection.execute('DELETE FROM expenses WHERE name_ = %s AND amount = %s AND data_create = %s;',
                                     (delete_item.products, delete_item.price, delete_item.date))
+            balance = self.connection.execute('SELECT * FROM budjet;')
+            for i in balance:
+                data.append(i)
+            self.connection.execute('INSERT INTO budjet (budjet_limit_month) VALUES (%s);',
+                                    (int(delete_item.price) + int(data[-1][-3])))
 
             self.trans.commit()
         except Exception as e:
@@ -83,7 +97,7 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def get_today(self, date):  # return statistic from today
+    def get_today(self, date: datetime.date) -> str:  # return statistic from today
         try:
             date_statistic = self.connection.execute(
                 'SELECT SUM(amount),data_create FROM expenses GROUP BY data_create;'
@@ -99,7 +113,7 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def get_statistic(self, date) -> str:
+    def get_statistic(self, date: datetime.date) -> str:
         try:
             month_statistic = self.connection.execute(
                 "SELECT SUM(amount) FROM expenses WHERE DATE (data_create) >= %s;", (date))
@@ -112,17 +126,14 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def take_away_balance(self, amount):
+    def take_away_balance(self, amount: int):
         data = []
         try:
             balance = self.connection.execute('SELECT * FROM budjet;')
             for i in balance:
                 data.append(i)
-
-            print(data[-1][-2])
-            print(amount)
             self.connection.execute('INSERT INTO budjet (budjet_limit_month) VALUES (%s);',
-                                    (int(data[-1][-2]) - int(amount)))
+                                    (int(data[-1][-3]) - int(amount)))
 
             self.trans.commit()
 
@@ -131,9 +142,9 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def get_default_balance(self):
+    def get_default_balance(self) -> str:
         try:
-            default_balance = self.connection.execute('SELECT budjet_limit_month_default FROM budjet WHERE id=1;')
+            default_balance = self.connection.execute('SELECT budjet_limit_month_default FROM budjet WHERE id=2;')
             for i in default_balance:
                 return i[0]
 
@@ -143,9 +154,9 @@ class DataBase(object):
             print(e)
             self.trans.rollback()
 
-    def replenishment_balance(self):
+    def replenishment_balance(self) -> None:
         try:
-            default_balance = self.connection.execute('SELECT budjet_limit_month_default FROM budjet WHERE id=1;')
+            default_balance = self.connection.execute('SELECT data_money FROM budjet WHERE id=1;')
             for i in default_balance:
                 new_balance = i[0]
                 self.connection.execute('TRUNCATE TABLE budjet RESTART IDENTITY;')
@@ -153,6 +164,16 @@ class DataBase(object):
                                         (new_balance))
 
                 self.trans.commit()
+
+        except Exception as e:
+            print(e)
+            self.trans.rollback()
+
+    def insert_data_balance(self, data_balance: int) -> None:
+        try:
+            self.connection.execute('INSERT INTO budjet (data_money) VALUES (%s) ', (data_balance))
+
+            self.trans.commit()
 
         except Exception as e:
             print(e)

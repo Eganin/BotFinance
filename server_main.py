@@ -52,7 +52,9 @@ async def welcome(message: types.message) -> None:
 
         await  message.answer(
             'Узнать баланс: /balance\n'
-            'Удалить определенную покупку: /del', reply=False)
+            'Удалить определенную покупку: /del\n'
+            'Узнать статистку за год: /year\n'
+            'Дата зарплаты /databal', reply=False)
 
     except:
         raise exceptions.FatalError(await message.answer('Произошла неизвестная ошибка'))
@@ -67,7 +69,9 @@ async def print_help(message: types.message) -> None:
                              'Для того чтобы пользоваться командами нужно их в точности набрать\n'
                              'При наборе команды: /budjet надо набрать размер бюджета на месяц\n'
                              'Например:/budjet 100000'
-                             'Чтобы удалить покупку надо просмотреть /expenses и нажать определенный /del', reply=False)
+                             'Чтобы удалить покупку надо просмотреть /expenses и нажать определенный /del'
+                             'Чтобы указать число поступления зарплаты: /databall число , \n'
+                             'Напрмер: /databall 20', reply=False)
     except:
         raise exceptions.FatalError(await message.answer('Произошла неизвестная ошибка'))
 
@@ -154,6 +158,7 @@ async def delete_all(message: types.message) -> None:
     try:
         answer_database = expenses.delete_all()
         await message.answer(answer_database.message)
+        await  message.answer('не забудьте потом добавить дату зарплаты\n с помощью команды /databal')
     except:
         raise exceptions.ErrorToDataBase(await message.answer('Произошли какие-то неполадки с базой данных'))
 
@@ -173,6 +178,7 @@ async def balance(message: types.message) -> None:
 @dp.message_handler(commands=['databal'])
 @auth_user
 async def auto_balance(message: types.message) -> None:
+    await message.answer('Число обновления баланса добавлено')
     data_balance = int(message.text.split()[1])
     expenses.check_replenishment_balance(expenses.replenishment_balance_date(data_balance))
 
@@ -192,7 +198,6 @@ async def del_expenses(message: types.message) -> None:
 
 
 @dp.message_handler(lambda message: message)  # other message , message to add expenses
-@auth_user
 async def add_expenses(message: types.message) -> None:
     '''add to new expenses'''
     try:

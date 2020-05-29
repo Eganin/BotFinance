@@ -124,7 +124,8 @@ def ratio_balance():
     return result
 
 
-def replenishment_balance_date(data_balance):
+def replenishment_balance_date(data_balance):  # return data_balance next month
+    database.DataBase().insert_data_balance(data_balance)
     date_today = get_datetime_today()[:5]
     cnt_month = int(get_datetime_today()[5:7]) + 1  # new month
     result = str(date_today) + '0' + str(cnt_month) + '-' + str(data_balance)  # new format data
@@ -132,7 +133,6 @@ def replenishment_balance_date(data_balance):
 
 
 def check_replenishment_balance(date):
-    while True:
-        now_datetime_today = get_datetime_today()
-        if now_datetime_today == date:
-            database.DataBase().replenishment_balance()
+    now_datetime_today = get_datetime_today()
+    if now_datetime_today == date:
+        database.DataBase().replenishment_balance()
